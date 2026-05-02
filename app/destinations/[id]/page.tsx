@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDestination } from "@/lib/destinations";
+import { getDestination, getDestinationIds } from "@/lib/destinations";
 import { isValidImage } from "@/lib/images";
+
+export function generateStaticParams() {
+  return getDestinationIds().map((id) => ({ id }));
+}
 
 export default async function DestinationPage({
   params,

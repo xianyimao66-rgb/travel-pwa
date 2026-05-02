@@ -1,12 +1,7 @@
 import Link from "next/link";
 import PlannerForm from "@/components/PlannerForm";
 
-export default async function TripPlannerPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ destination?: string }>;
-}) {
-  const { destination } = await searchParams;
+export default function TripPlannerPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
@@ -43,7 +38,7 @@ export default async function TripPlannerPage({
       </div>
 
       {/* Form */}
-      <PlannerForm key={`planner-${destination ?? "default"}`} />
+      <PlannerForm />
     </div>
   );
 }

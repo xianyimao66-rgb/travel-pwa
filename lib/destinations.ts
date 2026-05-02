@@ -337,3 +337,8 @@ export function getDestination(id: string): Destination | undefined {
 export function getAllDestinations(): Destination[] {
   return destinations;
 }
+
+// 获取所有目的地ID（用于静态生成）
+export function getDestinationIds(): string[] {
+  return destinations.map((d) => d.id);
+}
