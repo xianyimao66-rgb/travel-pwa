@@ -23,7 +23,7 @@ const dayPlanSchema = z.object({
   ),
   meals: z.array(
     z.object({
-      type: z.enum(["早餐", "午餐", "晚餐"]),
+      type: z.enum(["Breakfast", "Lunch", "Dinner"]),
       recommendation: z.string(),
       estimatedCost: z.number(),
     })
@@ -34,7 +34,7 @@ const tripPlanSchema = z.object({
   destination: z.string(),
   days: z.number(),
   budget: z.number(),
-  style: z.enum(["轻松", "平衡", "紧凑"]),
+  style: z.enum(["Relaxed", "Balanced", "Intensive"]),
   overview: z.string(),
   dayPlans: z.array(dayPlanSchema),
   totalEstimatedCost: z.number(),
@@ -44,28 +44,43 @@ const tripPlanSchema = z.object({
 export async function generateTripPlan(
   params: TripPlanParams
 ): Promise<TripPlan> {
+  const styleCN =
+    params.style === "Relaxed"
+      ? "轻松"
+      : params.style === "Balanced"
+        ? "平衡"
+        : "紧凑";
+  const styleDesc =
+    params.style === "Relaxed"
+      ? "3-4 activities per day"
+      : params.style === "Balanced"
+        ? "5-6 activities per day"
+        : "7-8 activities per day";
+
   const { object } = await generateObject({
     model: qwen("qwen-plus"),
     schema: tripPlanSchema,
-    prompt: `你是一位专业的旅行规划师。请为以下旅行需求生成一个详细的行程计划。
+    prompt: `You are a professional travel planner. Create a detailed itinerary in JSON.
 
-目的地：${params.destination}
-旅行天数：${params.days}天
-每日预算：${params.budget}元/天
-旅行风格：${params.style}（轻松=每天3-4个活动，平衡=每天5-6个活动，紧凑=每天7-8个活动）
+Destination: ${params.destination}
+Days: ${params.days}
+Daily Budget: ${params.budget} CNY/day
+Style: ${styleCN} (${styleDesc})
 
-请生成一份完整的 JSON 格式行程计划，包含：
-1. 行程总览描述
-2. 每天的详细安排（标题、描述、活动列表、三餐推荐）
-3. 每个活动包含：时间、名称、描述、时长、预估费用
-4. 总体预估总花费
-5. 实用小贴士
+Language: Respond in English. Keep food/cuisine names in Chinese with English explanation.
 
-注意：
-- 活动时间要合理，早中晚分布均匀
-- 费用要合理，符合每日预算
-- 推荐当地特色美食
-- 考虑合理的交通路线，避免绕路`,
+Generate a complete JSON itinerary with:
+1. Overview description
+2. Daily plans with schedule, activities, and meal recommendations
+3. Each activity: time, name, description, duration, estimated cost
+4. Total estimated cost
+5. Practical tips for travelers
+
+Notes:
+- Spread activities through morning, afternoon, and evening
+- Costs should be realistic for the daily budget
+- Recommend local cuisine and hidden gems
+- Consider logical route planning between attractions`,
   });
 
   return object as TripPlan;

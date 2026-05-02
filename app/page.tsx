@@ -1,115 +1,87 @@
 import Link from "next/link";
 import DestinationCard from "@/components/DestinationCard";
-import type { Destination } from "@/lib/types";
-
-const popularDestinations: Destination[] = [
-  {
-    id: "beijing",
-    name: "北京",
-    image: "",
-    description: "千年古都，融合历史与现代的东方魅力之城",
-    tags: ["历史", "美食", "文化"],
-    rating: 4.8,
-  },
-  {
-    id: "shanghai",
-    name: "上海",
-    image: "",
-    description: "魔都风情，繁华都市与弄堂文化的完美交汇",
-    tags: ["都市", "购物", "夜生活"],
-    rating: 4.7,
-  },
-  {
-    id: "chengdu",
-    name: "成都",
-    image: "",
-    description: "天府之国，美食天堂，慢生活的代名词",
-    tags: ["美食", "熊猫", "休闲"],
-    rating: 4.9,
-  },
-  {
-    id: "xiamen",
-    name: "厦门",
-    image: "",
-    description: "海上花园，文艺小清新的海滨城市",
-    tags: ["海岛", "文艺", "美食"],
-    rating: 4.6,
-  },
-  {
-    id: "guilin",
-    name: "桂林",
-    image: "",
-    description: "桂林山水甲天下，如诗如画的山水仙境",
-    tags: ["自然", "山水", "徒步"],
-    rating: 4.5,
-  },
-  {
-    id: "dali",
-    name: "大理",
-    image: "",
-    description: "风花雪月，苍山洱海间的诗意栖居",
-    tags: ["古镇", "自然", "摄影"],
-    rating: 4.7,
-  },
-];
+import { getPopularDestinations } from "@/lib/destinations";
 
 export default function HomePage() {
+  const destinations = getPopularDestinations(6);
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
-      {/* 头部 */}
-      <header className="mb-8 sm:mb-12">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
+      {/* Hero */}
+      <section className="mb-10 sm:mb-16 text-center">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 leading-tight">
+          Your{" "}
           <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            旅行规划
-          </span>
+            AI Travel Planner
+          </span>{" "}
+          for China
         </h1>
-        <p className="mt-2 text-base sm:text-lg text-gray-500">
-          AI 帮你规划完美旅程
+        <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
+          Discover China&apos;s most incredible destinations. Let AI create
+          your perfect itinerary — from the Great Wall to hidden local gems.
         </p>
-      </header>
+      </section>
 
-      {/* 搜索入口 */}
+      {/* AI Trip Planner CTA */}
       <Link
         href="/trip-planner"
-        className="group relative mb-8 sm:mb-12 flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 transition-all hover:shadow-md hover:ring-blue-200"
+        className="group relative mb-10 sm:mb-16 flex items-center gap-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 p-5 sm:p-6 ring-1 ring-blue-100 transition-all hover:shadow-lg hover:ring-blue-200"
       >
-        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white text-xl shadow-sm">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white text-2xl shadow-sm">
           ✨
         </span>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-            AI 智能规划行程
+          <p className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+            Plan My Trip with AI
           </p>
-          <p className="text-sm text-gray-400">
-            输入目的地，立即生成专属行程
+          <p className="text-sm text-gray-400 mt-0.5">
+            Tell us your destination, days, and budget. We&apos;ll build a
+            personalized day-by-day itinerary.
           </p>
         </div>
-        <span className="text-gray-300 group-hover:text-blue-400 transition-colors">
+        <span className="shrink-0 text-gray-300 group-hover:text-blue-400 transition-colors text-xl">
           →
         </span>
       </Link>
 
-      {/* 热门目的地 */}
+      {/* Popular Destinations */}
       <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">热门目的地</h2>
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Popular Destinations
+          </h2>
           <Link
             href="/destinations"
             className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
           >
-            查看全部 →
+            View all →
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {popularDestinations.map((dest) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {destinations.map((dest) => (
             <DestinationCard key={dest.id} destination={dest} />
           ))}
         </div>
       </section>
 
-      {/* 底部 */}
+      {/* Features */}
+      <section className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-gray-100 pt-10">
+        {[
+          { icon: "🧠", title: "AI-Powered", desc: "Smart itineraries tailored to your preferences in seconds" },
+          { icon: "🗺️", title: "Local Insights", desc: "Curated recommendations from real travel experts" },
+          { icon: "📱", title: "Works Offline", desc: "Save your trips and access them anywhere, anytime" },
+        ].map((f) => (
+          <div key={f.title} className="text-center">
+            <span className="text-3xl">{f.icon}</span>
+            <h3 className="mt-3 font-semibold text-gray-900">{f.title}</h3>
+            <p className="mt-1 text-sm text-gray-400">{f.desc}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* Footer */}
       <footer className="mt-12 border-t border-gray-100 pt-6 text-center text-sm text-gray-400">
-        <p>旅行规划 · AI 驱动的智能助手</p>
+        <p>Travel Planner · AI-powered trip planning for China</p>
       </footer>
     </div>
   );

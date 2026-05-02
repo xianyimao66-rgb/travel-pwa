@@ -9,7 +9,7 @@ export default function PlannerForm() {
   const [destination, setDestination] = useState("");
   const [days, setDays] = useState(3);
   const [budget, setBudget] = useState(500);
-  const [style, setStyle] = useState<TripPlanParams["style"]>("平衡");
+  const [style, setStyle] = useState<TripPlanParams["style"]>("Balanced");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [plan, setPlan] = useState<TripPlan | null>(null);
@@ -99,7 +99,7 @@ export default function PlannerForm() {
             旅行风格
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {(["轻松", "平衡", "紧凑"] as const).map((s) => (
+            {(["Relaxed", "Balanced", "Intensive"] as const).map((s) => (
               <button
                 key={s}
                 type="button"

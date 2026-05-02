@@ -2,10 +2,26 @@
 export interface Destination {
   id: string;
   name: string;
+  nameEn: string;
+  country: string;
+  countryEn: string;
   image: string;
   description: string;
+  descriptionZh?: string;
+  shortDescription: string;
   tags: string[];
   rating: number;
+  bestSeason?: string;
+  avgBudget?: number;
+  highlights: string[];
+  quickFacts: {
+    population: string;
+    language: string;
+    currency: string;
+    timezone: string;
+    airport: string;
+    bestFor: string;
+  };
 }
 
 // 每日行程
@@ -26,7 +42,7 @@ export interface Activity {
 }
 
 export interface Meal {
-  type: "早餐" | "午餐" | "晚餐";
+  type: "Breakfast" | "Lunch" | "Dinner";
   recommendation: string;
   estimatedCost: number;
 }
@@ -36,7 +52,7 @@ export interface TripPlan {
   destination: string;
   days: number;
   budget: number;
-  style: "轻松" | "平衡" | "紧凑";
+  style: "Relaxed" | "Balanced" | "Intensive";
   overview: string;
   dayPlans: DayPlan[];
   totalEstimatedCost: number;
@@ -48,5 +64,5 @@ export interface TripPlanParams {
   destination: string;
   days: number;
   budget: number;
-  style: "轻松" | "平衡" | "紧凑";
+  style: "Relaxed" | "Balanced" | "Intensive";
 }

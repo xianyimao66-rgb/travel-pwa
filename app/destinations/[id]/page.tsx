@@ -1,98 +1,153 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getDestination } from "@/lib/destinations";
 
-const destinations: Record<string, { name: string; description: string; highlights: string[] }> = {
-  beijing: {
-    name: "北京",
-    description: "北京，中华人民共和国的首都，是一座有着三千多年历史的古都。这里既有故宫、天坛等世界文化遗产，也有鸟巢、国贸等现代建筑地标。烤鸭、涮羊肉、豆汁等美食让人流连忘返。",
-    highlights: ["故宫博物院", "长城（八达岭/慕田峪）", "天坛", "颐和园", "南锣鼓巷", "798艺术区"],
-  },
-  shanghai: {
-    name: "上海",
-    description: "上海，中国的经济中心，是一座兼具现代繁华与历史韵味的国际大都市。外滩的万国建筑群、陆家嘴的摩天大楼、弄堂里的市井生活，构成了这座城市的独特魅力。",
-    highlights: ["外滩", "东方明珠塔", "豫园", "南京路步行街", "迪士尼乐园", "武康路"],
-  },
-  chengdu: {
-    name: "成都",
-    description: "成都，四川省省会，被誉为天府之国。这里是国宝大熊猫的故乡，也是联合国教科文组织命名的美食之都。悠闲的生活节奏、麻辣鲜香的川菜、古老的宽窄巷子，让这座城市充满了独特的魅力。",
-    highlights: ["大熊猫繁育研究基地", "宽窄巷子", "锦里", "都江堰", "青城山", "人民公园"],
-  },
-  xiamen: {
-    name: "厦门",
-    description: "厦门，福建省东南沿海的城市，被誉为海上花园。鼓浪屿的万国建筑、环岛路的椰风海韵、曾厝垵的文艺小店，让这座海滨城市充满了浪漫气息。",
-    highlights: ["鼓浪屿", "厦门大学", "南普陀寺", "环岛路", "曾厝垵", "中山路步行街"],
-  },
-  guilin: {
-    name: "桂林",
-    description: "桂林，广西壮族自治区东北部，以山水甲天下闻名于世。漓江两岸的喀斯特峰林、阳朔的田园风光，构成了一幅幅如诗如画的山水画卷。",
-    highlights: ["漓江竹筏", "阳朔西街", "象鼻山", "龙脊梯田", "银子岩", "十里画廊"],
-  },
-  dali: {
-    name: "大理",
-    description: "大理，云南西部，以风花雪月（下关风、上关花、苍山雪、洱海月）闻名。古城里的白族建筑、苍山洱海的壮丽景色，让这里成为无数人心中的诗和远方。",
-    highlights: ["大理古城", "洱海骑行", "苍山", "崇圣寺三塔", "喜洲古镇", "双廊"],
-  },
-  hangzhou: {
-    name: "杭州",
-    description: "杭州，浙江省省会，自古就有上有天堂下有苏杭的美誉。西湖美景、龙井茶香、灵隐钟声，这座江南名城处处散发着温婉的诗意。",
-    highlights: ["西湖", "雷峰塔", "灵隐寺", "宋城", "西溪湿地", "龙井村"],
-  },
-  chongqing: {
-    name: "重庆",
-    description: "重庆，中国四大直辖市之一，被称为8D魔幻城市。依山而建的建筑、穿楼而过的轻轨、热气腾腾的火锅、璀璨的夜景，无一不让人惊叹。",
-    highlights: ["洪崖洞", "解放碑", "长江索道", "磁器口古镇", "李子坝轻轨站", "南山一棵树"],
-  },
-  sanya: {
-    name: "三亚",
-    description: "三亚，海南岛最南端的热带滨海城市，被誉为东方夏威夷。洁白沙滩、碧蓝海水、椰林婆娑，是度假休闲的绝佳选择。",
-    highlights: ["亚龙湾", "天涯海角", "蜈支洲岛", "南山寺", "大小洞天", "鹿回头"],
-  },
-};
-
-export default async function DestinationDetailPage({
+export default async function DestinationPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const dest = destinations[id];
-  if (!dest) notFound();
+  const dest = getDestination(id);
+
+  if (!dest) {
+    notFound();
+  }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
-      <div className="mb-6 flex items-center gap-4">
-        <Link href="/destinations" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-          ← 返回目的地
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
+      {/* Breadcrumb */}
+      <nav className="mb-6 text-sm text-gray-400">
+        <Link href="/" className="hover:text-blue-600 transition-colors">
+          Home
         </Link>
+        <span className="mx-2">/</span>
+        <Link
+          href="/destinations"
+          className="hover:text-blue-600 transition-colors"
+        >
+          Destinations
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-gray-600">{dest.name}</span>
+      </nav>
+
+      {/* Hero */}
+      <div className="mb-8">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              {dest.name}
+            </h1>
+            <p className="text-lg text-gray-400 mt-1">
+              {dest.nameEn}, {dest.countryEn}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-xl bg-yellow-50 px-3 py-1.5 text-sm font-semibold text-yellow-700">
+            ★ {dest.rating}
+          </span>
+        </div>
+        <p className="mt-4 text-lg text-gray-600 leading-relaxed">
+          {dest.description}
+        </p>
+        {dest.descriptionZh && (
+          <p className="mt-2 text-sm text-gray-400 italic">
+            {dest.descriptionZh}
+          </p>
+        )}
       </div>
 
-      <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-8 text-white shadow-md">
-        <h1 className="text-3xl font-bold">{dest.name}</h1>
-        <p className="mt-4 text-blue-100 leading-relaxed">{dest.description}</p>
-      </div>
-
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">热门景点</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {dest.highlights.map((spot) => (
-            <div
-              key={spot}
-              className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-100"
-            >
-              <p className="font-medium text-gray-900">{spot}</p>
+      {/* Quick Facts Grid */}
+      <section className="mb-10 rounded-2xl bg-gray-50 p-5 sm:p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Quick Facts
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+          {[
+            { label: "Population", value: dest.quickFacts.population },
+            { label: "Language", value: dest.quickFacts.language },
+            { label: "Currency", value: dest.quickFacts.currency },
+            { label: "Timezone", value: dest.quickFacts.timezone },
+            { label: "Airport", value: dest.quickFacts.airport },
+            { label: "Best for", value: dest.quickFacts.bestFor },
+          ].map((f) => (
+            <div key={f.label}>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">
+                {f.label}
+              </p>
+              <p className="mt-1 text-gray-800 font-medium">{f.value}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="mt-8">
-        <Link
-          href={`/trip-planner?destination=${encodeURIComponent(dest.name)}`}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:from-blue-600 hover:to-indigo-600"
-        >
-          ✨ 用 AI 规划{dest.name}行程
-        </Link>
-      </div>
+      {/* Highlights */}
+      {dest.highlights.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Why Visit {dest.name}
+          </h2>
+          <ul className="space-y-3">
+            {dest.highlights.map((h, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="shrink-0 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-sm text-blue-600">
+                  {i + 1}
+                </span>
+                <span className="text-gray-600 leading-relaxed">{h}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Best Time & Budget */}
+      <section className="mb-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="rounded-xl bg-blue-50 p-4">
+          <p className="text-xs uppercase tracking-wide text-blue-500 font-semibold">
+            Best Season
+          </p>
+          <p className="mt-1 font-medium text-gray-900">
+            {dest.bestSeason || "Year-round"}
+          </p>
+        </div>
+        {dest.avgBudget && (
+          <div className="rounded-xl bg-green-50 p-4">
+            <p className="text-xs uppercase tracking-wide text-green-500 font-semibold">
+              Avg. Daily Budget
+            </p>
+            <p className="mt-1 font-medium text-gray-900">
+              ~¥{dest.avgBudget} (~${Math.round(dest.avgBudget / 7)})
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Tags */}
+      <section className="mb-10">
+        <div className="flex flex-wrap gap-2">
+          {dest.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full bg-gray-100 px-3.5 py-1.5 text-sm text-gray-600"
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA: AI Trip Planner */}
+      <Link
+        href={`/trip-planner?destination=${dest.name}`}
+        className="group block rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 p-5 sm:p-6 text-white transition-all hover:shadow-lg"
+      >
+        <p className="text-lg font-semibold group-hover:underline">
+          ✨ Plan Your {dest.name} Trip with AI
+        </p>
+        <p className="mt-1 text-sm text-blue-100">
+          Get a personalized day-by-day itinerary in seconds
+        </p>
+      </Link>
     </div>
   );
 }
