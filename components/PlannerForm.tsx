@@ -404,6 +404,39 @@ export default function PlannerForm() {
             </div>
           </div>
 
+          {/* Send to Email — 显眼位置 */}
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  📧 Save to Email
+                </h4>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Get this itinerary in your inbox
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <input
+                  type="email"
+                  value={emailTo}
+                  onChange={(e) => setEmailTo(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-44 sm:w-56 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+                <button
+                  onClick={handleSendToEmail}
+                  disabled={sending || !emailTo.includes('@')}
+                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {sending ? 'Sending...' : emailSent ? '✅ Sent!' : 'Send'}
+                </button>
+              </div>
+            </div>
+            {emailSent && (
+              <p className="mt-2 text-sm text-green-600">✅ Itinerary sent to {emailTo}!</p>
+            )}
+          </div>
+
           {/* Day plans */}
           <div className="space-y-3">
             {plan.dayPlans.map((dayPlan) => (
@@ -475,31 +508,7 @@ export default function PlannerForm() {
             </div>
           )}
 
-          {/* Send to email */}
-          <div className="rounded-2xl bg-gray-50 p-5 ring-1 ring-gray-100">
-            <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
-              📧 Send Itinerary to Your Email
-            </h4>
-            <div className="flex gap-2">
-              <input
-                type="email"
-                value={emailTo}
-                onChange={(e) => setEmailTo(e.target.value)}
-                placeholder="your@email.com"
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              />
-              <button
-                onClick={handleSendToEmail}
-                disabled={sending || !emailTo.includes('@')}
-                className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {sending ? 'Sending...' : emailSent ? '✅ Sent!' : 'Send'}
-              </button>
-            </div>
-            {emailSent && (
-              <p className="mt-2 text-sm text-green-600">Itinerary sent to {emailTo}!</p>
-            )}
-          </div>
+
         </div>
       )}
     </div>

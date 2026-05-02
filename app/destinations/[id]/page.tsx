@@ -115,7 +115,7 @@ export default async function DestinationPage({
         {dest.highlights.length > 0 && (
           <section className="mb-10">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Why Visit {dest.name}
+              Why Visit {dest.nameEn}
             </h2>
             <ul className="space-y-3">
               {dest.highlights.map((h, i) => (

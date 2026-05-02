@@ -1,3 +1,6 @@
 name = "travel-pwa"
 compatibility_date = "2026-05-01"
-pages_build_output_dir = ".next"
+pages_build_output_dir = "out"
+
+[vars]
+QIANWEN_API_KEY = "sk-f280a496102340ecb26098bbafc08460"

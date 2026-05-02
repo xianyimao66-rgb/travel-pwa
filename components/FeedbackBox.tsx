@@ -9,6 +9,13 @@ export default function FeedbackBox() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
+
+    // Encode feedback into a format we can capture
+    // Use a mailto: with a specific subject so it goes to the project email
+    const body = `Feedback from Travel Planner:\n\n${text.trim()}\n\n---\nSent via travel-pwa.pages.dev`;
+    const mailto = `mailto:330261196@qq.com?subject=${encodeURIComponent("Travel Planner Feedback")}&body=${encodeURIComponent(body)}`;
+    window.open(mailto);
+
     setSubmitted(true);
     setText("");
     setTimeout(() => setSubmitted(false), 4000);
@@ -38,7 +45,7 @@ export default function FeedbackBox() {
               Thank You for Your Feedback! 🙏
             </p>
             <p className="mt-1 text-sm text-gray-500">
-              We&apos;ll use it to make Travel Planner even better.
+              Your message has been sent to our team.
             </p>
           </div>
         ) : (
