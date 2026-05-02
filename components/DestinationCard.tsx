@@ -5,10 +5,14 @@ import type { Destination } from "@/lib/types";
 const cityEmojis: Record<string, string> = {
   beijing: "🏯",
   shanghai: "🌆",
+  guangzhou: "🥟",
+  shenzhen: "🏢",
   chengdu: "🐼",
+  hangzhou: "🌊",
+  zhangjiajie: "🏔️",
+  suzhou: "🌿",
   xiamen: "🏖️",
-  guilin: "🏔️",
-  dali: "🌸",
+  nanjing: "🏛️",
 };
 
 export default function DestinationCard({
