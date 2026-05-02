@@ -1,9 +1,5 @@
-// City IDs that have valid real images (not HTML placeholder garbage)
-const validImageCache: Record<string, boolean> = {};
-let initialized = false;
-
-// JPEG magic bytes + known valid city image IDs from manual inspection
-// beijing.jpg, suzhou.jpg, xiamen.jpg are HTML garbage (404 pages) — exclude them
+// All 10 cities now have real JPEG images downloaded
+// Files: public/images/destinations/{cityId}.jpg
 const validCities = new Set([
   "shanghai",
   "chengdu",
@@ -11,7 +7,10 @@ const validCities = new Set([
   "hangzhou",
   "nanjing",
   "shenzhen",
+  "beijing",
   "zhangjiajie",
+  "xiamen",
+  "suzhou",
 ]);
 
 export function isValidImage(cityId: string): boolean {
