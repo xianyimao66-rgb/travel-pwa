@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import FeedbackBox from "@/components/FeedbackBox";
 
 export const metadata: Metadata = {
   title: "Travel Planner China — AI-Powered Itineraries",
@@ -59,6 +60,16 @@ export default function RootLayout({
         </nav>
 
         <main>{children}</main>
+
+        {/* Global Feedback Box */}
+        <FeedbackBox />
+
+        {/* Footer */}
+        <footer className="border-t border-gray-100 bg-white">
+          <div className="mx-auto max-w-5xl px-4 py-8 text-center text-sm text-gray-400 sm:px-6">
+            <p>Travel Planner · AI-powered trip planning for China</p>
+          </div>
+        </footer>
       </body>
     </html>
   );

@@ -24,13 +24,31 @@ export interface Destination {
   };
 }
 
+// 旅行类型
+export type TravelType = "solo" | "couple" | "family" | "friends";
+
+// 旅行偏好
+export type TravelPreference =
+  | "history_culture"   // 人文历史
+  | "nature_scenery"    // 自然风景
+  | "food"              // 美食
+  | "citywalk"          // Citywalk
+  | "instagram"         // 网红打卡
+  | "shopping"          // 购物
+  | "outdoor_adventure" // 户外冒险
+  | "art_culture";      // 文化艺术
+
+// 预算档位
+export type BudgetLevel = "budget" | "comfort" | "luxury";
+
 // 每日行程
 export interface DayPlan {
   day: number;
   title: string;
   description: string;
   activities: Activity[];
-  meals: Meal[];
+  meals: { type: "Breakfast" | "Lunch" | "Dinner"; recommendation: string; estimatedCost: number }[];
+  transportTips?: string; // 当天的交通建议
 }
 
 export interface Activity {
@@ -39,6 +57,7 @@ export interface Activity {
   description: string;
   duration: string;
   cost: number;
+  image?: string;
 }
 
 export interface Meal {
@@ -51,18 +70,25 @@ export interface Meal {
 export interface TripPlan {
   destination: string;
   days: number;
-  budget: number;
-  style: "Relaxed" | "Balanced" | "Intensive";
+  travelers: number;
+  travelType: TravelType;
+  budgetLevel: BudgetLevel;
+  preferences: TravelPreference[];
   overview: string;
   dayPlans: DayPlan[];
   totalEstimatedCost: number;
   tips: string[];
 }
 
-// 生成参数
-export interface TripPlanParams {
+// 表单数据
+export interface PlannerFormData {
   destination: string;
   days: number;
-  budget: number;
-  style: "Relaxed" | "Balanced" | "Intensive";
+  travelers: number;
+  travelType: TravelType;
+  preferences: TravelPreference[];
+  budgetLevel: BudgetLevel;
 }
+
+// 旧版兼容（保留以保持兼容性，但不再使用）
+export type TripPlanParams = PlannerFormData;
