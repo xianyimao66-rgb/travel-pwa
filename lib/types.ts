@@ -45,6 +45,7 @@ export type BudgetLevel = "budget" | "comfort" | "luxury";
 export interface DayPlan {
   day: number;
   title: string;
+  intro?: string;
   description: string;
   activities: Activity[];
   meals: { type: "Breakfast" | "Lunch" | "Dinner"; recommendation: string; estimatedCost: number }[];
