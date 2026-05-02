@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import "./globals.css";
 import FeedbackBox from "@/components/FeedbackBox";
 
@@ -29,6 +30,23 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
+      <Script
+        id="register-sw"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                  console.log('SW registered:', reg.scope);
+                }).catch(err => {
+                  console.log('SW registration failed:', err);
+                });
+              });
+            }
+          `,
+        }}
+      />
       <body className="min-h-screen bg-white text-gray-900 antialiased">
         {/* Nav */}
         <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
