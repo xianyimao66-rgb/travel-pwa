@@ -5,20 +5,55 @@ import { useState } from "react";
 export default function FeedbackBox() {
   const [text, setText] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
 
-    // Encode feedback into a format we can capture
-    // Use a mailto: with a specific subject so it goes to the project email
-    const body = `Feedback from Travel Planner:\n\n${text.trim()}\n\n---\nSent via travel-pwa.pages.dev`;
-    const mailto = `mailto:330261196@qq.com?subject=${encodeURIComponent("Travel Planner Feedback")}&body=${encodeURIComponent(body)}`;
-    window.open(mailto);
+    setSending(true);
+    setError("");
 
-    setSubmitted(true);
-    setText("");
-    setTimeout(() => setSubmitted(false), 4000);
+    try {
+      // Send via the existing send-email endpoint
+      // It takes a plan object — we'll build a minimal one with the feedback
+      const feedbackPlan = {
+        destination: "User Feedback",
+        days: 0,
+        travelers: 1,
+        travelType: "solo",
+        budgetLevel: "comfort",
+        preferences: [],
+        overview: `Page: ${window.location.pathname}`,
+        dayPlans: [],
+        totalEstimatedCost: 0,
+        tips: [text.trim()],
+      };
+
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: "330261196@qq.com",
+          subject: `💬 Travel Planner Feedback — ${window.location.pathname}`,
+          plan: feedbackPlan,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to send" }));
+        throw new Error(err.error || "Server error");
+      }
+
+      setSubmitted(true);
+      setText("");
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send feedback");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -66,13 +101,16 @@ export default function FeedbackBox() {
               />
               <button
                 type="submit"
-                disabled={!text.trim()}
+                disabled={!text.trim() || sending}
                 className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                Send
+                {sending ? "Sending..." : "Send"}
               </button>
             </div>
           </form>
+        )}
+        {error && (
+          <p className="mt-2 text-center text-sm text-red-500">{error}</p>
         )}
       </div>
     </section>
