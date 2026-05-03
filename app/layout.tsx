@@ -84,8 +84,20 @@ export default function RootLayout({
 
         {/* Footer */}
         <footer className="border-t border-gray-100 bg-white">
-          <div className="mx-auto max-w-5xl px-4 py-8 text-center text-sm text-gray-400 sm:px-6">
-            <p>Travel Planner · AI-powered trip planning for China</p>
+          <div className="mx-auto max-w-5xl px-4 py-6 text-center sm:px-6">
+            <p className="text-sm text-gray-400">Travel Planner · AI-powered trip planning for China</p>
+            <p className="mt-2 text-xs text-gray-300">
+              Some links on this site are affiliate links.{" "}
+              <a
+                href="https://t.ctrip.cn/rDS67sX"
+                target="_blank"
+                rel="nofollow sponsored noopener"
+                className="underline hover:text-gray-400 transition-colors"
+              >
+                Book via Ctrip
+              </a>
+              {" "}to support us at no extra cost to you.
+            </p>
           </div>
         </footer>
       </body>
