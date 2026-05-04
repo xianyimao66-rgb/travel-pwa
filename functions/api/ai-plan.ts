@@ -42,6 +42,8 @@ export async function onRequest(context: { request: Request; env: Env }): Promis
       outdoor_adventure: "Outdoor & Adventure", art_culture: "Art & Culture",
     };
     const prefStr = (params.preferences || []).map((p: string) => prefLabels[p] || p).join(", ");
+    const customPref = params.customPreference || "";
+    const allPrefs = prefStr + (prefStr && customPref ? ", " : "") + customPref;
 
     // Rounding function
     const round = ROUND_BY_BUDGET[params.budgetLevel as keyof typeof ROUND_BY_BUDGET] || ((n: number) => n);
@@ -77,7 +79,7 @@ THE TRAVELER:
 - Travelers: ${params.travelers}
 - Travel Type: ${descMap[params.travelType] || params.travelType}
 - Budget: ${budgetMap[params.budgetLevel] || params.budgetLevel}
-- Interests: ${prefStr || "General sightseeing"}
+- Interests: ${allPrefs || "General sightseeing"}
 
 OUTPUT JSON STRUCTURE (ONLY return this JSON, nothing else):
 {

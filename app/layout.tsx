@@ -89,12 +89,12 @@ export default function RootLayout({
             <p className="mt-2 text-xs text-gray-300">
               Some links on this site are affiliate links.{" "}
               <a
-                href="https://t.ctrip.cn/rDS67sX"
+                href="https://trip.com"
                 target="_blank"
                 rel="nofollow sponsored noopener"
                 className="underline hover:text-gray-400 transition-colors"
               >
-                Book via Ctrip
+                Book on Trip.com
               </a>
               {" "}to support us at no extra cost to you.
             </p>

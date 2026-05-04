@@ -60,8 +60,9 @@ export default function PlannerForm() {
   const [showAllTips, setShowAllTips] = useState(false);
   const [emailTo, setEmailTo] = useState("");
   const [emailSent, setEmailSent] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [emailFailed, setEmailFailed] = useState(false);
   const [emailInputError, setEmailInputError] = useState(false);
+  const [customPreference, setCustomPreference] = useState("");
 
   const filteredCities = destinations.filter(
     (d) =>
@@ -92,7 +93,6 @@ export default function PlannerForm() {
     setError("");
     setPlan(null);
     setShowAllTips(false);
-    setEmailSent(false);
     try {
       const result = await generateTripPlan({
         destination: destination.trim(),
@@ -100,13 +100,33 @@ export default function PlannerForm() {
         travelers,
         travelType,
         preferences: selectedPreferences,
+        customPreference: customPreference.trim(),
         budgetLevel,
       });
       setPlan(result);
 
-      // Auto-send email if provided
-      if (emailTo && emailTo.includes('@') && result) {
-        sendPlanToEmail(result).catch(() => {});
+      // Auto-send to email if provided
+      if (emailTo && emailTo.includes('@')) {
+        setEmailSent(false);
+        setEmailFailed(false);
+        try {
+          const res = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: emailTo,
+              subject: `Your ${result.destination} Itinerary — Travel Planner`,
+              plan: result,
+            }),
+          });
+          if (res.ok) {
+            setEmailSent(true);
+          } else {
+            setEmailFailed(true);
+          }
+        } catch {
+          setEmailFailed(true);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate plan. Please try again.");
@@ -115,45 +135,7 @@ export default function PlannerForm() {
     }
   };
 
-  const sendPlanToEmail = async (plan: TripPlan): Promise<void> => {
-    if (!emailTo || !emailTo.includes('@') || !plan) return;
-    setSending(true);
-    setEmailInputError(false);
-
-    const payload = {
-      to: emailTo,
-      subject: `Your ${plan.destination} Itinerary — Travel Planner`,
-      plan,
-    };
-
-    try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ error: 'Failed to send' }));
-        throw new Error(errData.error || `HTTP ${res.status}`);
-      }
-
-      setEmailSent(true);
-      setTimeout(() => setEmailSent(false), 8000);
-    } catch (err) {
-      console.error('Email send failed:', err);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleSendToEmail = () => {
-    if (!emailTo || !emailTo.includes('@') || !plan) {
-      setEmailInputError(true);
-      return;
-    }
-    sendPlanToEmail(plan);
-  };
+  // Send to email if user entered one
 
   return (
     <div className="space-y-6">
@@ -322,6 +304,16 @@ export default function PlannerForm() {
               );
             })}
           </div>
+          {/* Custom preference input */}
+          <div className="mt-3">
+            <input
+              type="text"
+              value={customPreference}
+              onChange={(e) => setCustomPreference(e.target.value)}
+              placeholder="Or type your own interests... (e.g., night photography, calligraphy class, tea ceremony)"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition"
+            />
+          </div>
         </div>
 
         {/* Budget */}
@@ -349,32 +341,33 @@ export default function PlannerForm() {
           </div>
         </div>
 
-        {/* Email (optional — for auto delivery) */}
+        {/* Email for auto-delivery */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            📧 Email for Itinerary <span className="text-gray-400 font-normal">(optional — we&apos;ll send it to you automatically after generation)</span>
+            📧 Your Email <span className="text-gray-400 font-normal">(optional — get your itinerary delivered)</span>
           </label>
-          <div className="relative">
-            <input
-              type="email"
-              value={emailTo}
-              onChange={(e) => {
-                setEmailTo(e.target.value);
-                setEmailInputError(false);
-              }}
-              placeholder="your@email.com"
-              className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 transition ${
-                emailInputError
-                  ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                  : "border-gray-200 focus:border-blue-400 focus:ring-blue-100"
-              }`}
-            />
-            {emailSent && (
-              <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
-                ✅ Itinerary sent to {emailTo}!
-              </p>
-            )}
-          </div>
+          <input
+            type="email"
+            value={emailTo}
+            onChange={(e) => {
+              setEmailTo(e.target.value);
+              setEmailInputError(false);
+            }}
+            placeholder="your@email.com"
+            className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 transition ${
+              emailInputError
+                ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                : "border-gray-200 focus:border-blue-400 focus:ring-blue-100"
+            }`}
+          />
+          {emailSent && (
+            <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
+              ✅ Itinerary sent to {emailTo}
+            </p>
+          )}
+          {emailFailed && (
+            <p className="mt-1.5 text-xs text-red-500">Send failed. You can still screenshot the plan below.</p>
+          )}
         </div>
 
         {error && (
@@ -435,37 +428,35 @@ export default function PlannerForm() {
             </div>
           </div>
 
-          {/* Send to Email — 显眼位置 */}
-          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <h4 className="text-sm font-semibold text-gray-700">
-                  📧 Save to Email
-                </h4>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Get this itinerary in your inbox
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <input
-                  type="email"
-                  value={emailTo}
-                  onChange={(e) => setEmailTo(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-44 sm:w-56 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                />
-                <button
-                  onClick={handleSendToEmail}
-                  disabled={sending || !emailTo.includes('@')}
-                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          {/* 📧 Send it to you or screenshot */}
+          <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-5 ring-1 ring-emerald-100">
+            <div className="text-center space-y-3">
+              {emailSent ? (
+                <div>
+                  <p className="text-sm font-semibold text-emerald-800">✅ Sent to {emailTo}!</p>
+                  <p className="text-xs text-emerald-600 mt-1">Check your inbox 📬</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-emerald-800">
+                    📸 Love this itinerary?
+                  </p>
+                  <p className="text-xs text-emerald-600">
+                    Enter your email above before generating, or just screenshot the plan on screen.
+                  </p>
+                </>
+              )}
+              <div className="flex flex-wrap justify-center gap-2">
+                <a
+                  href="https://trip.com"
+                  target="_blank"
+                  rel="nofollow sponsored noopener"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
                 >
-                  {sending ? 'Sending...' : emailSent ? '✅ Sent!' : 'Send'}
-                </button>
+                  🏨 Book on Trip.com
+                </a>
               </div>
             </div>
-            {emailSent && (
-              <p className="mt-2 text-sm text-green-600">✅ Itinerary sent to {emailTo}!</p>
-            )}
           </div>
 
           {/* Day plans */}
@@ -536,6 +527,13 @@ export default function PlannerForm() {
                     : `Show all ${plan.tips.length} tips`}
                 </button>
               )}
+              {/* Trip.com affiliate — visible after tips */}
+              <div className="mt-4 rounded-xl bg-white/80 p-3 text-center ring-1 ring-amber-200">
+                <p className="text-xs text-amber-700">
+                  🏨 <a href="https://trip.com" target="_blank" rel="nofollow sponsored noopener" className="font-semibold underline hover:text-amber-900">Book on Trip.com</a>
+                  <span className="block mt-0.5 text-amber-500">Supports us at no extra cost to you</span>
+                </p>
+              </div>
             </div>
           )}
 

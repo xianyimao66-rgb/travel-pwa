@@ -88,6 +88,7 @@ export interface PlannerFormData {
   travelers: number;
   travelType: TravelType;
   preferences: TravelPreference[];
+  customPreference: string;
   budgetLevel: BudgetLevel;
 }
 

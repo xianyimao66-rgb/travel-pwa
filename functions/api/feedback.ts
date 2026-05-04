@@ -1,18 +1,12 @@
 // @ts-nocheck
 
-interface Env {
-  EMAIL_USER?: string;
-  EMAIL_PASS?: string;
-}
+/**
+ * Feedback API — lightweight SMTP sender.
+ * Receives user feedback, fire-and-forgets it to Eddy's QQ via SMTP.
+ * No KV, no database, no external dependencies.
+ */
 
-interface FeedbackEntry {
-  id: string;
-  text: string;
-  timestamp: string;
-  page: string;
-}
-
-export async function onRequest(context: { request: Request; env: Env }): Promise<Response> {
+export async function onRequest(context) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -25,134 +19,91 @@ export async function onRequest(context: { request: Request; env: Env }): Promis
   }
 
   try {
-    if (context.request.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method not allowed" }), { headers, status: 405 });
+    if (context.request.method === "POST") {
+      const body = await context.request.json();
+      const text = (body?.text || "").trim();
+      if (!text) {
+        return new Response(JSON.stringify({ error: "Feedback text is required" }), { headers, status: 400 });
+      }
+
+      const feedbackEmail = context.env.EMAIL_USER || "330261196@qq.com";
+      const emailPass = context.env.EMAIL_PASS;
+
+      if (emailPass) {
+        const subject = `💬 Feedback: ${body?.page || "unknown"} [${new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}]`;
+        context.waitUntil(
+          sendMail(feedbackEmail, emailPass, feedbackEmail, subject, text)
+            .catch(e => console.error("SMTP error:", e))
+        );
+      }
+
+      return new Response(JSON.stringify({ success: true, note: "Feedback sent! Thanks 🐙" }), { headers, status: 201 });
     }
 
-    const { text, page } = await context.request.json() as { text?: string; page?: string };
-
-    if (!text || !text.trim()) {
-      return new Response(JSON.stringify({ error: "Feedback text is required" }), { headers, status: 400 });
+    // Admin GET — returns empty list but confirms endpoint works
+    if (context.request.method === "GET") {
+      const auth = context.request.headers.get("X-Admin-Token");
+      const expectedToken = context.env.ADMIN_TOKEN || "";
+      if (expectedToken && auth !== expectedToken) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { headers, status: 401 });
+      }
+      return new Response(JSON.stringify({ status: "ok", note: "Feedback goes directly to email" }), { headers });
     }
 
-    const entry: FeedbackEntry = {
-      id: crypto.randomUUID(),
-      text: text.trim(),
-      timestamp: new Date().toISOString(),
-      page: page || "unknown",
-    };
-
-    // Forward to QQ email via SMTP
-    try {
-      await sendSmtpMail(
-        context.env.EMAIL_USER || "330261196@qq.com",
-        context.env.EMAIL_PASS || "",
-        "330261196@qq.com",
-        `💬 Travel Planner Feedback — ${entry.page}`,
-        buildFeedbackEmail(entry)
-      );
-    } catch (emailErr: any) {
-      console.error("Failed to email feedback:", emailErr);
-      return new Response(JSON.stringify({
-        success: true,
-        note: "Feedback received but email notification failed — check server SMTP config",
-      }), { headers, status: 201 });
-    }
-
-    return new Response(JSON.stringify({ success: true, id: entry.id }), { headers, status: 201 });
-  } catch (err: any) {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), { headers, status: 405 });
+  } catch (err) {
     return new Response(JSON.stringify({ error: err.message || "Internal error" }), { headers, status: 500 });
   }
 }
 
-function buildFeedbackEmail(entry: FeedbackEntry): string {
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,sans-serif;">
-<div style="max-width:600px;margin:0 auto;padding:16px;">
-  <div style="background:linear-gradient(135deg,#3b82f6,#6366f1);border-radius:12px;padding:20px;color:white;margin-bottom:16px;">
-    <h1 style="margin:0;font-size:18px;">💬 New Feedback</h1>
-    <p style="margin:4px 0 0 0;opacity:0.8;font-size:13px;">${entry.page}</p>
-  </div>
-  <div style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-    <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;white-space:pre-wrap;">${escapeHtml(entry.text)}</p>
-  </div>
-  <div style="text-align:center;padding:16px 0;color:#9ca3af;font-size:11px;">
-    <p style="margin:0;">${new Date(entry.timestamp).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</p>
-    <p style="margin:4px 0 0 0;">ID: ${entry.id}</p>
-  </div>
-</div>
-</body>
-</html>`;
-}
+/**
+ * Minimal SMTP sender over TCP (cloudflare:sockets API)
+ */
+async function sendMail(from, pass, to, subject, body) {
+  // Use the CF runtime connect API
+  const socket = new Socket();
+  await socket.connect({ hostname: "smtp.qq.com", port: 587 });
+  socket.startTls(); // upgrade to TLS
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
 
-async function sendSmtpMail(user: string, pass: string, to: string, subject: string, html: string): Promise<void> {
-  const { connect } = await import('cloudflare:sockets');
-
-  const sock = connect({ host: 'smtp.qq.com', port: 587, tls: true });
-  const writer = sock.writable.getWriter();
-  const reader = sock.readable.getReader();
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-
-  let buf = '';
-  async function readLine(): Promise<string> {
-    while (!buf.includes('\n')) {
-      const { value, done } = await reader.read();
-      if (done) throw new Error('Connection closed');
-      buf += decoder.decode(value, { stream: true });
+  let buffer = "";
+  const readResp = async () => {
+    while (!buffer.includes("\r\n")) {
+      const chunk = await socket.read();
+      if (!chunk) break;
+      buffer += dec.decode(chunk);
     }
-    const idx = buf.indexOf('\n');
-    const line = buf.slice(0, idx).replace(/\r$/, '');
-    buf = buf.slice(idx + 1);
+    const line = buffer.slice(0, buffer.indexOf("\r\n"));
+    buffer = buffer.slice(buffer.indexOf("\r\n") + 2);
     return line;
-  }
+  };
 
-  async function send(cmd: string, expected: number): Promise<string> {
-    if (cmd) await writer.write(encoder.encode(cmd + '\r\n'));
-    while (true) {
-      const line = await readLine();
-      const match = line.match(/^(\d{3})/);
-      if (!match) continue;
-      const code = parseInt(match[1], 10);
-      if (line[3] === ' ' && code === expected) return line;
-      if (code >= 400) throw new Error(`SMTP error: ${line}`);
-    }
-  }
+  const writeRead = async (cmd) => {
+    socket.write(enc.encode(cmd + "\r\n"));
+    return readResp();
+  };
 
-  try {
-    await send(null, 220);
-    await send(`EHLO travel-planner`, 250);
-    await send(`AUTH LOGIN`, 334);
-    await send(btoa(user), 334);
-    await send(btoa(pass), 235);
+  await writeRead("EHLO travel-pwa");
+  await writeRead("AUTH LOGIN");
+  await writeRead(btoa(from));
+  await writeRead(btoa(pass));
+  await writeRead(`MAIL FROM:<${from}>`);
+  await writeRead(`RCPT TO:<${to}>`);
+  await writeRead("DATA");
 
-    await send(`MAIL FROM:<${user}>`, 250);
-    await send(`RCPT TO:<${to}>`, 250);
-    await send(`DATA`, 354);
+  const msg =
+    `From: ${from}\r\n` +
+    `To: ${to}\r\n` +
+    `Subject: ${subject}\r\n` +
+    `Content-Type: text/plain; charset=utf-8\r\n` +
+    `\r\n` +
+    `${body}\r\n` +
+    `.\r\n`;
+  socket.write(enc.encode(msg));
+  await readResp();
 
-    const boundary = `----=_Part_${Date.now()}`;
-    const emailBody = [
-      `From: "Travel Planner Feedback" <${user}>`,
-      `To: ${to}`,
-      `Subject: ${subject}`,
-      `MIME-Version: 1.0`,
-      `Content-Type: text/html; charset="UTF-8"`,
-      ``,
-      html,
-      ``,
-      `.`,
-    ].join('\r\n');
-
-    await writer.write(encoder.encode(emailBody + '\r\n'));
-    await readLine();
-    await send(`QUIT`, 221);
-  } finally {
-    writer.close().catch(() => {});
-  }
+  await writeRead("QUIT");
+  socket.close();
 }

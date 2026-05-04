@@ -16,41 +16,43 @@ export default function FeedbackBox() {
     setError("");
 
     try {
-      // Send via the existing send-email endpoint
-      // It takes a plan object — we'll build a minimal one with the feedback
-      const feedbackPlan = {
-        destination: "User Feedback",
-        days: 0,
-        travelers: 1,
-        travelType: "solo",
-        budgetLevel: "comfort",
-        preferences: [],
-        overview: `Page: ${window.location.pathname}`,
-        dayPlans: [],
-        totalEstimatedCost: 0,
-        tips: [text.trim()],
-      };
-
       const res = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: "330261196@qq.com",
-          subject: `💬 Travel Planner Feedback — ${window.location.pathname}`,
-          plan: feedbackPlan,
+          subject: `💬 Feedback: ${window.location.pathname}`,
+          plan: {
+            destination: "User Feedback",
+            days: 1,
+            travelers: 0,
+            travelType: "solo",
+            budgetLevel: "comfort",
+            preferences: [],
+            overview: text.trim(),
+            dayPlans: [{
+              day: 1,
+              title: "",
+              description: text.trim(),
+              activities: [],
+              meals: [],
+            }],
+            totalEstimatedCost: 0,
+            tips: [],
+          },
         }),
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Failed to send" }));
-        throw new Error(err.error || "Server error");
+        const errData = await res.json().catch(() => ({ error: "Server error" }));
+        throw new Error(errData.error || "Failed to send");
       }
 
       setSubmitted(true);
       setText("");
       setTimeout(() => setSubmitted(false), 4000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send feedback");
+      setError("Failed to send. Please try again.");
     } finally {
       setSending(false);
     }
